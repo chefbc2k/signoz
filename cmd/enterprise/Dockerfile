@@ -1,3 +1,12 @@
+FROM node:20-alpine AS frontend-builder
+WORKDIR /frontend
+
+COPY frontend/package.json frontend/yarn.lock ./
+RUN npm install -g yarn && yarn install --frozen-lockfile
+
+COPY frontend/ .
+RUN yarn build
+
 FROM alpine:3.20.3
 LABEL maintainer="signoz"
 WORKDIR /root
@@ -12,7 +21,7 @@ RUN apk update && \
 
 COPY ./target/${OS}-${TARGETARCH}/signoz /root/signoz
 COPY ./templates/email /root/templates
-COPY frontend/build/ /etc/signoz/web/
+COPY --from=frontend-builder /frontend/build/ /etc/signoz/web/
 
 RUN chmod 755 /root /root/signoz
 
