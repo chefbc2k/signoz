@@ -1,0 +1,47 @@
+name: Deploy to Container App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build application
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      # Push to your container registry
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Push Docker image
+        run: |
+          docker tag signoz-community:latest ${{ secrets.REGISTRY_URL }}/signoz-community:latest
+          docker push ${{ secrets.REGISTRY_URL }}/signoz-community:latest
+
+      # Deploy to your container platform
+      # Add your specific deployment steps here

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: signoz-community
+    env: docker
+    # Use the build script before Docker build
+    dockerCommand: ./build.sh
+    # Or use make directly
+    # buildCommand: make docker-build-community
+    envVars:
+      - key: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+        value: tcp://clickhouse:9000
+      - key: SIGNOZ_SQLSTORE_SQLITE_PATH
+        value: /var/lib/signoz/signoz.db
+      - key: SIGNOZ_ALERTMANAGER_PROVIDER
+        value: signoz

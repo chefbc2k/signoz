@@ -1,0 +1,64 @@
+name: signoz-community
+region: nyc
+
+# SigNoz backend service
+services:
+  - name: signoz
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: YOUR_GITHUB_USERNAME/signoz
+
+    # Build configuration
+    build_command: chmod +x build.sh && ./build.sh
+
+    # Use the Dockerfile after build
+    dockerfile_path: cmd/community/Dockerfile
+
+    # Instance configuration
+    instance_count: 1
+    instance_size_slug: professional-xs
+
+    # HTTP configuration
+    http_port: 8080
+
+    # Health check
+    health_check:
+      http_path: /api/v1/health
+      initial_delay_seconds: 60
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+
+    # Environment variables
+    envs:
+      - key: SIGNOZ_ALERTMANAGER_PROVIDER
+        value: signoz
+      - key: SIGNOZ_SQLSTORE_SQLITE_PATH
+        value: /var/lib/signoz/signoz.db
+      - key: STORAGE
+        value: clickhouse
+      - key: DEPLOYMENT_TYPE
+        value: digitalocean-app-platform
+      - key: TELEMETRY_ENABLED
+        value: "true"
+      - key: DOT_METRICS_ENABLED
+        value: "true"
+      # ClickHouse DSN - will be set after ClickHouse is configured
+      - key: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+        value: tcp://clickhouse:9000
+        type: SECRET
+
+# ClickHouse database (you'll need to set this up separately)
+# Digital Ocean doesn't have managed ClickHouse, so you have a few options:
+# 1. Use ClickHouse Cloud (recommended)
+# 2. Deploy ClickHouse on a Droplet
+# 3. Use a Docker container (not recommended for production)
+
+# For development, you can comment out the service above and use this instead:
+# This runs the full stack with ClickHouse included
+# services:
+#   - name: signoz-full-stack
+#     dockerfile_path: deploy/docker/docker-compose.yaml
+#     instance_size_slug: professional-m
