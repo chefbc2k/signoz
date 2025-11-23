@@ -52,6 +52,9 @@ func registerServer(parentCmd *cobra.Command, logger *slog.Logger) {
 
 	flags.RegisterFlags(serverCmd)
 	parentCmd.AddCommand(serverCmd)
+
+	parentCmd.RunE = serverCmd.RunE
+	parentCmd.Flags().AddFlagSet(serverCmd.Flags())
 }
 
 func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) error {
